@@ -1,0 +1,64 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  scroll-behavior: smooth;
+  background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 10s ease infinite;
+}
+.drop-zone {
+  @apply border-2 border-dashed border-purple-400 rounded-lg p-5 text-center bg-gray-700 transition-all;
+}
+.drop-zone:hover, .drop-zone.active {
+  @apply border-purple-600 bg-purple-900/10;
+}
+.company-bar {
+  @apply flex space-x-4 overflow-x-auto pb-4 no-scrollbar;
+}
+.company-category {
+  @apply min-w-[300px] bg-gray-800 p-4 rounded-lg;
+}
+.company-item {
+  @apply flex items-center space-x-2 mb-2;
+}
+.progress-bar {
+  @apply w-full h-2 bg-gray-600 rounded-full overflow-hidden;
+}
+.progress {
+  @apply h-full bg-green-500 transition-width;
+}
+.feedback {
+  @apply bg-gray-700 p-4 rounded-lg border-l-4 border-purple-400;
+}
+.light-mode-toggle {
+  @apply relative w-15 h-7 rounded-full cursor-pointer bg-gray-700;
+}
+.toggle-circle {
+  @apply absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center transition-transform;
+}
+.dark .toggle-circle {
+  @apply transform translate-x-8;
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+.no-scrollbar::-webkit-scrollbar {
+  @apply hidden;
+}
+.no-scrollbar {
+  @apply -ms-overflow-style-none scrollbar-width-none;
+}
+.toast-container {
+  @apply fixed bottom-5 right-5 z-50;
+}
+.intro, .suggestions {
+  @apply bg-gray-800 p-4 rounded-lg mt-4;
+}
+.course {
+  @apply text-purple-400 hover:underline;
+}
+.interview-questions {
+  @apply bg-gray-800 p-4 rounded-lg mt-4;
+}
