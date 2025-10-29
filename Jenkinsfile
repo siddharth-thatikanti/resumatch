@@ -1,12 +1,23 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "resumatch"
+        DOCKERHUB_USER = "siddhartha9"
+    }
+
     stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/siddharth-thatikanti/resumatch.git'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
                     echo "🛠️ Building Docker image for ResuMatch..."
-                    docker.build('resumatch:latest')
+                    dockerImage = docker.build("${IMAGE_NAME}")
                 }
             }
         }
@@ -14,13 +25,8 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    echo "🚀 Pushing Docker image to Docker Hub..."
-                    withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKER_TOKEN')]) {
-                        sh '''
-                        echo $DOCKER_TOKEN | docker login -u myusername --password-stdin
-                        docker tag resumatch:latest myusername/resumatch:latest
-                        docker push myusername/resumatch:latest
-                        '''
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
+                        dockerImage.push('latest')
                     }
                 }
             }
@@ -28,32 +34,20 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                script {
-                    echo "🏃 Running ResuMatch container..."
-                    sh '''
-                    docker rm -f resumatch || true
-                    docker run -d --name resumatch -p 8081:80 myusername/resumatch:latest
-                    '''
-                }
+                sh "docker run -d -p 8080:80 ${IMAGE_NAME}"
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                script {
-                    echo "🌐 Checking if ResuMatch app is live..."
-                    sh '''
-                    sleep 5
-                    curl -I http://localhost:8081 || echo "App not reachable yet"
-                    '''
-                }
+                sh "curl -I http://localhost:8080"
             }
         }
     }
 
     post {
         success {
-            echo "✅ ResuMatch deployed successfully at http://localhost:8081"
+            echo "✅ Build and deployment successful!"
         }
         failure {
             echo "❌ Build failed! Please check the logs."
