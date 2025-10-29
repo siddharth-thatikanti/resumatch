@@ -34,20 +34,22 @@ pipeline {
 
         stage('Run Container') {
             steps {
-                sh "docker run -d -p 8080:80 ${IMAGE_NAME}"
+                echo "🚀 Running container on port 8085..."
+                sh "docker run -d -p 8085:80 --name resumatch-container ${IMAGE_NAME}"
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                sh "curl -I http://localhost:8080"
+                echo "🔍 Verifying ResuMatch deployment..."
+                sh "curl -I http://localhost:8085"
             }
         }
     }
 
     post {
         success {
-            echo "✅ Build and deployment successful!"
+            echo "✅ Build and deployment successful! App running at http://localhost:8085"
         }
         failure {
             echo "❌ Build failed! Please check the logs."
