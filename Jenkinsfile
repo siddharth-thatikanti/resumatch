@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "resumatch"
-        DOCKERHUB_USER = "siddhartha9"
+        DOCKERHUB_USER = "sidduthatiknati93"
     }
 
     stages {
