@@ -2,57 +2,70 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "resumatch"
-        DOCKERHUB_USER = "sidduthatiknati93"
+        DOCKER_IMAGE = "sidduthatikanti93/resumatch"
+        DOCKER_TAG   = "latest"
+        DOCKER_CREDS = "dockerhub-creds"
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Source') {
             steps {
-                git 'https://github.com/siddharth-thatikanti/resumatch.git'
+                echo "Repository checked out by Jenkins SCM"
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    echo "🛠️ Building Docker image for ResuMatch..."
-                    dockerImage = docker.build("${IMAGE_NAME}")
+                sh '''
+                docker build -t $DOCKER_IMAGE:$DOCKER_TAG .
+                '''
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: DOCKER_CREDS,
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                    '''
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push Image') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
-                        dockerImage.push('latest')
-                    }
-                }
+                sh '''
+                docker push $DOCKER_IMAGE:$DOCKER_TAG
+                '''
             }
         }
 
         stage('Run Container') {
             steps {
-                echo "🚀 Running container on port 8085..."
-                sh "docker run -d -p 8085:80 --name resumatch-container ${IMAGE_NAME}"
-            }
-        }
+                echo "Running container on port 8085..."
 
-        stage('Verify Deployment') {
-            steps {
-                echo "🔍 Verifying ResuMatch deployment..."
-                sh "curl -I http://localhost:8085"
+                sh '''
+                docker rm -f resumatch-container || true
+                docker run -d -p 8085:80 --name resumatch-container $DOCKER_IMAGE:$DOCKER_TAG
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "✅ Build and deployment successful! App running at http://localhost:8085"
+            echo "Pipeline completed successfully"
         }
         failure {
-            echo "❌ Build failed! Please check the logs."
+            echo "Pipeline failed"
+        }
+        always {
+            sh 'docker logout || true'
         }
     }
 }
